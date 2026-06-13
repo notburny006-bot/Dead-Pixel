@@ -25,6 +25,16 @@ jobs:
         run: |
           pip install buildozer cython==0.29.37
 
+      - name: Download Android SDK + build-tools
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          cd $HOME/android-sdk/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
+          unzip -q tools.zip
+          mv cmdline-tools latest
+          yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33"
+
       - name: Init python-for-android
         run: |
           mkdir -p .buildozer/android/platform
@@ -36,6 +46,8 @@ jobs:
 
       - name: Build APK
         run: |
+          export ANDROIDSDK=$HOME/android-sdk
+          export ANDROID_HOME=$HOME/android-sdk
           buildozer android debug
         timeout-minutes: 30
 
