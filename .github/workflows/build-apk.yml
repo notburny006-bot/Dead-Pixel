@@ -26,7 +26,7 @@ jobs:
 
       - name: Install Python deps
         run: |
-          pip install buildozer "cython<3.0"
+          pip install buildozer cython==0.29.37
 
       - name: Init git for python-for-android
         run: |
