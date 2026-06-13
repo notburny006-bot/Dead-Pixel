@@ -23,14 +23,12 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          accept-android-sdk-licenses: true
 
-      - name: Install Android build tools
+      - name: Install build tools
         run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33"
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "ANDROIDSDK=$ANDROID_HOME" >> $GITHUB_ENV
+          sdkmanager --install "build-tools;33.0.2" "platforms;android-33"
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
 
       - name: Install Python deps
         run: |
