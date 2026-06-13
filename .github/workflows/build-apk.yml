@@ -40,8 +40,8 @@ jobs:
         run: |
           mkdir -p ~/.android
           echo "count=0" > ~/.android/repositories.cfg
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager \
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "build-tools;33.0.2" \
             "platforms;android-33" \
             "platform-tools" || true
