@@ -3,9 +3,10 @@ from kivy.core.window import Window
 
 import esper
 from game import SpaceHunterGame
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
 # Portrait mode
-Window.size = (400, 700)
+Window.size = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
 
 class SpaceHunterApp(App):

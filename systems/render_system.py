@@ -1,21 +1,31 @@
 import esper
 from components import Position, Renderable
 from kivy.uix.image import Image
+from constants import PLAYER_SIZE
 
 
 class RenderSystem(esper.Processor):
-    """Sync Position components to Kivy widgets."""
+    """Sync Position components to Kivy widgets. Manages widget lifecycle."""
 
     def __init__(self, game_widget):
         self.game = game_widget
+        self._widget_map: dict[int, Image] = {}  # entity_id → widget
 
     def process(self, dt):
         for ent, (pos, rend) in esper.get_components(Position, Renderable):
             if rend.widget is None:
                 rend.widget = Image(
                     source=rend.source,
-                    size=(48, 48),
+                    size=(PLAYER_SIZE, PLAYER_SIZE),
                     allow_stretch=True,
+                    keep_ratio=True,
                 )
                 self.game.add_widget(rend.widget)
+                self._widget_map[ent] = rend.widget
             rend.widget.pos = (pos.x, pos.y)
+
+    def remove_widget(self, entity: int) -> None:
+        """Remove Kivy widget for a deleted entity."""
+        widget = self._widget_map.pop(entity, None)
+        if widget and widget.parent:
+            self.game.remove_widget(widget)

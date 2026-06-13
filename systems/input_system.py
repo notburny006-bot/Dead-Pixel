@@ -1,8 +1,6 @@
 import esper
 from components import Position, Speed, Player
-
-# How far touch delta is scaled (pixels per pixel dragged)
-TOUCH_SENSITIVITY = 1.0
+from constants import TOUCH_SENSITIVITY, PLAYER_SIZE
 
 
 class InputSystem(esper.Processor):
@@ -27,8 +25,8 @@ class InputSystem(esper.Processor):
             pos.x += dx
             pos.y += dy
             # Clamp to screen bounds
-            pos.x = max(0, min(pos.x, self.screen_w - 48))
-            pos.y = max(0, min(pos.y, self.screen_h - 48))
+            pos.x = max(0, min(pos.x, self.screen_w - PLAYER_SIZE))
+            pos.y = max(0, min(pos.y, self.screen_h - PLAYER_SIZE))
 
         self.touch_pos = (touch.x, touch.y)
 
@@ -36,6 +34,5 @@ class InputSystem(esper.Processor):
         self.touch_pos = None
 
     def process(self, dt):
-        # Update screen size each frame (resizes handled)
         self.screen_w = self.game.width
         self.screen_h = self.game.height
