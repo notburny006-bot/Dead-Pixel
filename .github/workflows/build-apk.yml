@@ -21,6 +21,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential git python3-dev libffi-dev
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+
       - name: Install Python deps
         run: |
           pip install buildozer cython==0.29.37
