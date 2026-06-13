@@ -1,0 +1,6 @@
+.buildozer/
+__pycache__/
+*.pyc
+bin/
+buildozer.log
+*.zip
