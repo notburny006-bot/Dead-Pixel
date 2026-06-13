@@ -20,7 +20,7 @@ jobs:
       - name: Install system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential git python3-dev libffi-dev openjdk-17-jdk unzip zip
+          sudo apt-get install -y build-essential git python3-dev libffi-dev unzip zip
 
       - name: Set up Java
         run: echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
@@ -57,7 +57,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dead-pixel-apk
-          path: bin/*.apk
+          path: |
+            bin/*.apk
+            .buildozer/**/*.apk
+          include-hidden-files: true
 
       - name: Upload build log on failure
         if: failure()
