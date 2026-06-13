@@ -60,14 +60,14 @@ jobs:
           find . -name "*.apk" -type f -exec cp {} artifacts/ \;
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: dead-pixel-apk
           path: artifacts/*.apk
 
       - name: Upload build log on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: build-log
           path: build.log
