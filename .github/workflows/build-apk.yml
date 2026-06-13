@@ -53,14 +53,17 @@ jobs:
         run: buildozer android debug 2>&1 | tee build.log
         timeout-minutes: 60
 
+      - name: Find APK
+        run: |
+          find . -name "*.apk" -type f 2>/dev/null
+          mkdir -p artifacts
+          find . -name "*.apk" -type f -exec cp {} artifacts/ \;
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: dead-pixel-apk
-          path: |
-            bin/*.apk
-            .buildozer/**/*.apk
-          include-hidden-files: true
+          path: artifacts/*.apk
 
       - name: Upload build log on failure
         if: failure()
