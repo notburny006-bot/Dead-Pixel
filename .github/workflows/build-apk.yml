@@ -20,13 +20,7 @@ jobs:
       - name: Install system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential git python3-dev libffi-dev \
-            libssl-dev zlib1g-dev libbz2-dev libreadline-dev \
-            libsqlite3-dev libncurses5-dev libncursesw5-dev \
-            xz-utils tk-dev libxml2-dev libxmlsec1-dev \
-            autoconf automake libtool unzip zip \
-            openjdk-17-jdk
+          sudo apt-get install -y build-essential git python3-dev libffi-dev openjdk-17-jdk unzip zip
 
       - name: Set up Java
         run: echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
