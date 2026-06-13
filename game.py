@@ -2,10 +2,13 @@ import esper
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 
-from components import Position, Speed, Renderable, Player
+from components import Position, Speed, Renderable, Player, Weapon
 from constants import PLAYER_SIZE, PLAYER_SPEED, PLAYER_START_Y
 from systems.input_system import InputSystem
 from systems.render_system import RenderSystem
+from systems.weapon_system import WeaponSystem
+from systems.movement_system import MovementSystem
+from systems.cleanup_system import CleanupSystem
 
 
 class SpaceHunterGame(Widget):
@@ -19,12 +22,16 @@ class SpaceHunterGame(Widget):
         self.input_system = InputSystem(self)
         self.render_system = RenderSystem(self)
         esper.add_processor(self.input_system, priority=0)
-        esper.add_processor(self.render_system, priority=1)
+        esper.add_processor(WeaponSystem(), priority=1)
+        esper.add_processor(MovementSystem(), priority=2)
+        esper.add_processor(self.render_system, priority=3)
+        esper.add_processor(CleanupSystem(self), priority=4)
 
         # Create player entity
         self.player_entity = esper.create_entity(
             Position(0, PLAYER_START_Y),
             Speed(PLAYER_SPEED),
+            Weapon(damage=10, fire_rate=0.3),
             Renderable(source="assets/player.png"),
             Player(),
         )
