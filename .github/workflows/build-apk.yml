@@ -28,7 +28,7 @@ jobs:
 
       - name: Install Android build tools
         run: |
-          sdkmanager "build-tools;33.0.2" "platforms;android-33"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33"
           echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
           echo "ANDROIDSDK=$ANDROID_HOME" >> $GITHUB_ENV
 
