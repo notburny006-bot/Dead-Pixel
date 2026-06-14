@@ -42,8 +42,8 @@ jobs:
           path: |
             ~/.buildozer
             .buildozer
-          key: buildozer-v4-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-v4-
+          key: buildozer-v5-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-v5-
 
       - name: Pre-install build-tools into buildozer SDK
         run: |
@@ -53,6 +53,9 @@ jobs:
           else
             echo "Buildozer SDK not yet present — will be installed during build"
           fi
+
+      - name: Clean old builds
+        run: rm -rf bin/ .buildozer/android/platform/build-*/
 
       - name: Build APK
         run: |
@@ -64,9 +67,9 @@ jobs:
         if: always()
         run: |
           echo "=== Searching for APK files ==="
-          find . -name "*.apk" -type f 2>/dev/null
+          find bin/ -name "*.apk" -type f 2>/dev/null
           mkdir -p artifacts
-          find . -name "*.apk" -type f -exec cp {} artifacts/ \;
+          cp bin/*.apk artifacts/ 2>/dev/null || true
           echo "=== artifacts/ contents ==="
           ls -la artifacts/ 2>/dev/null || echo "No artifacts dir"
 
