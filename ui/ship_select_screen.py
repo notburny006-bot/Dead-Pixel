@@ -46,8 +46,7 @@ class ShipSelectScreen(Screen):
 
         self.ship_image = Image(
             source=SHIPS[SHIP_ORDER[0]].source,
-            allow_stretch=True,
-            keep_ratio=True,
+            fit_mode="contain",
             size_hint_x=0.7,
         )
 
