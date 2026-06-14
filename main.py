@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
             def on_stop(self):
                 game = self._get_game()
-                if game:
+                if game and hasattr(game, 'render_system'):
                     game.render_system.clear_all()
                 esper.clear_database()
 

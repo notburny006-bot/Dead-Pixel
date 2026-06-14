@@ -65,7 +65,7 @@ class ShipSelectScreen(Screen):
 
         # Ship name
         self.ship_name = Label(
-            text="FALCON",
+            text=SHIPS[SHIP_ORDER[0]].display_name,
             font_size="32sp",
             color=(1, 1, 1, 1),
             size_hint_y=0.1,

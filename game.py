@@ -96,6 +96,8 @@ class GameScreen(Screen):
         self.game_widget = None
 
     def on_enter(self, *args):
+        if not self.parent:
+            return
         ship_id = self.parent.selected_ship_id
 
         if self.game_widget:
