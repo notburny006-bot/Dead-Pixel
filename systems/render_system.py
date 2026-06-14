@@ -1,7 +1,6 @@
 import esper
 from components import Position, Renderable
 from kivy.uix.image import Image
-from constants import PLAYER_SIZE
 
 
 class RenderSystem(esper.Processor):
@@ -16,7 +15,7 @@ class RenderSystem(esper.Processor):
             if rend.widget is None:
                 rend.widget = Image(
                     source=rend.source,
-                    size=(PLAYER_SIZE, PLAYER_SIZE),
+                    size=rend.size,
                     allow_stretch=True,
                     keep_ratio=True,
                 )
@@ -29,3 +28,10 @@ class RenderSystem(esper.Processor):
         widget = self._widget_map.pop(entity, None)
         if widget and widget.parent:
             self.game.remove_widget(widget)
+
+    def clear_all(self) -> None:
+        """Remove all widgets. Call before clearing esper database."""
+        for entity, widget in list(self._widget_map.items()):
+            if widget and widget.parent:
+                self.game.remove_widget(widget)
+        self._widget_map.clear()

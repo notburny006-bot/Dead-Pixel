@@ -1,17 +1,12 @@
 from kivy.app import App
-from kivy.core.window import Window
 
 import esper
-from game import SpaceHunterGame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-
-# Portrait mode
-Window.size = (SCREEN_WIDTH, SCREEN_HEIGHT)
+from game import DeadPixelGame
 
 
-class SpaceHunterApp(App):
+class DeadPixelApp(App):
     def build(self):
-        self.game = SpaceHunterGame()
+        self.game = DeadPixelGame()
         return self.game
 
     def on_pause(self):
@@ -22,8 +17,9 @@ class SpaceHunterApp(App):
         self.game.resume()
 
     def on_stop(self):
+        self.game.render_system.clear_all()
         esper.clear_database()
 
 
 if __name__ == "__main__":
-    SpaceHunterApp().run()
+    DeadPixelApp().run()

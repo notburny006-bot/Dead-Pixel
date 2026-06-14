@@ -1,28 +1,32 @@
 import esper
-from components import Position, Renderable, Bullet, Collider
-from constants import SCREEN_HEIGHT, SCREEN_WIDTH, BULLET_SIZE
+from components import Position, Renderable, Player
 
 
 class CleanupSystem(esper.Processor):
-    """Remove off-screen entities and their widgets."""
+    """Remove off-screen entities and their widgets. Never deletes the player."""
 
-    def __init__(self, game_widget):
+    def __init__(self, game_widget, render_system):
         self.game = game_widget
+        self.render_system = render_system
 
     def process(self, dt):
         to_delete = []
 
         for ent, (pos, rend) in esper.get_components(Position, Renderable):
-            # Off-screen check with margin
+            # Never delete the player
+            if esper.has_component(ent, Player):
+                continue
+
+            # Off-screen check with margin (use actual widget size)
             margin = 100
-            if (pos.y > SCREEN_HEIGHT + margin or
+            w = self.game.width
+            h = self.game.height
+            if (pos.y > h + margin or
                 pos.y < -margin or
                 pos.x < -margin or
-                pos.x > SCREEN_WIDTH + margin):
+                pos.x > w + margin):
                 to_delete.append(ent)
 
         for ent in to_delete:
-            rend = esper.try_component(ent, Renderable)
-            if rend and rend.widget and rend.widget.parent:
-                self.game.remove_widget(rend.widget)
+            self.render_system.remove_widget(ent)
             esper.delete_entity(ent)

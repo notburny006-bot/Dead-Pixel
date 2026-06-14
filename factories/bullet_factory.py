@@ -12,5 +12,5 @@ def create_bullet(x: float, y: float, damage: int, owner: str = "player") -> int
         Velocity(0, BULLET_SPEED),  # positive Y = upward in Kivy
         Collider(BULLET_SIZE[0], BULLET_SIZE[1]),
         Bullet(owner=owner, damage=damage),
-        Renderable(source="assets/bullet.png"),
+        Renderable(source="assets/bullet.png", size=BULLET_SIZE),
     )

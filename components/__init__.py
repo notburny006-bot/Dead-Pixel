@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
+
+from kivy.uix.image import Image
 
 # --- Core Components ---
 
@@ -10,7 +12,7 @@ class Position:
 
 @dataclass
 class Speed:
-    value: float  # pixels per second
+    max_speed: float  # max pixels per second
 
 @dataclass
 class Velocity:
@@ -21,7 +23,8 @@ class Velocity:
 class Renderable:
     """Marks entity for rendering. RenderSystem manages Kivy widget."""
     source: str
-    widget: Any = None
+    size: tuple = (48, 48)  # (width, height) for widget sizing
+    widget: Optional[Image] = None
 
 # --- Tag Components ---
 
@@ -54,6 +57,11 @@ class Weapon:
 class Collider:
     width: float
     height: float
+
+@dataclass
+class Friction:
+    """Deceleration factor per second. 5.0 = snappy stop, 1.0 = slippery."""
+    value: float
 
 @dataclass
 class Pickup:

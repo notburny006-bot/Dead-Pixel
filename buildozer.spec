@@ -1,5 +1,5 @@
 [app]
-title = Space Hunter
+title = Dead Pixel
 package.name = spacehunter
 package.domain = com.spacehunter.game
 source.dir = .

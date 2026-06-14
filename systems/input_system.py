@@ -1,38 +1,41 @@
 import esper
-from components import Position, Speed, Player
-from constants import TOUCH_SENSITIVITY, PLAYER_SIZE
+from components import Position, Velocity, Speed, Player
+from constants import PLAYER_SIZE
 
 
 class InputSystem(esper.Processor):
-    """Translate touch input to player movement. Free movement, bounded to screen."""
+    """Set player velocity toward touch position. Release = instant stop."""
 
     def __init__(self, game_widget):
         self.game = game_widget
         self.touch_pos = None
-        self.screen_w = 0
-        self.screen_h = 0
 
     def on_touch_down(self, touch):
         self.touch_pos = (touch.x, touch.y)
 
     def on_touch_move(self, touch):
-        if self.touch_pos is None:
-            return
-        dx = (touch.x - self.touch_pos[0]) * TOUCH_SENSITIVITY
-        dy = (touch.y - self.touch_pos[1]) * TOUCH_SENSITIVITY
-
-        for ent, (pos, speed, _) in esper.get_components(Position, Speed, Player):
-            pos.x += dx
-            pos.y += dy
-            # Clamp to screen bounds
-            pos.x = max(0, min(pos.x, self.screen_w - PLAYER_SIZE))
-            pos.y = max(0, min(pos.y, self.screen_h - PLAYER_SIZE))
-
         self.touch_pos = (touch.x, touch.y)
 
     def on_touch_up(self, touch):
         self.touch_pos = None
 
     def process(self, dt):
-        self.screen_w = self.game.width
-        self.screen_h = self.game.height
+        for ent, (pos, vel, speed, _) in esper.get_components(Position, Velocity, Speed, Player):
+            if self.touch_pos is None:
+                vel.dx = 0
+                vel.dy = 0
+                continue
+
+            # Direction from player center to touch
+            center_x = pos.x + PLAYER_SIZE / 2
+            center_y = pos.y + PLAYER_SIZE / 2
+            dx = self.touch_pos[0] - center_x
+            dy = self.touch_pos[1] - center_y
+            dist = (dx * dx + dy * dy) ** 0.5
+
+            if dist < 5:
+                vel.dx = 0
+                vel.dy = 0
+            else:
+                vel.dx = (dx / dist) * speed.max_speed
+                vel.dy = (dy / dist) * speed.max_speed
