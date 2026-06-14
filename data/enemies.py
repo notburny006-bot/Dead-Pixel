@@ -20,9 +20,20 @@ ENEMIES = {
         size=40,
         source="assets/enemy.png",
     ),
-    # Future enemy types:
-    # "fast": EnemyDef(name="fast", base_hp=10, base_speed=200.0, size=30, source="assets/enemy_fast.png"),
-    # "tank": EnemyDef(name="tank", base_hp=80, base_speed=60.0, size=60, source="assets/enemy_tank.png"),
+    "miniboss": EnemyDef(
+        name="miniboss",
+        base_hp=80,
+        base_speed=80.0,
+        size=56,
+        source="assets/enemy.png",
+    ),
+    "boss": EnemyDef(
+        name="boss",
+        base_hp=200,
+        base_speed=50.0,
+        size=72,
+        source="assets/enemy.png",
+    ),
 }
 
 HP_SCALE_PER_WAVE = 5   # extra HP per wave

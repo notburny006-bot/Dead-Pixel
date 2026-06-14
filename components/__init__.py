@@ -34,7 +34,23 @@ class Player:
 
 @dataclass
 class Enemy:
-    """Tag component for enemy entities."""
+    """Enemy entity with subtype."""
+    kind: str = "basic"  # "basic", "miniboss", "boss"
+
+
+@dataclass
+class BossAI:
+    """Boss behavior state."""
+    phase: int = 0
+    move_timer: float = 0.0
+    direction: int = 1  # 1=right, -1=left
+
+
+@dataclass
+class MinibossAI:
+    """Miniboss behavior state."""
+    strafe_timer: float = 0.0
+    direction: int = 1
 
 @dataclass
 class Bullet:

@@ -19,6 +19,7 @@ class SpawnSystem(esper.Processor):
         self.spawn_timer = 2.0
         self.wave_active = True
         self._build_wave_queue()
+        self.game.hud_system.set_wave(self.wave)
 
     def process(self, dt):
         if not self.wave_active:
@@ -42,6 +43,7 @@ class SpawnSystem(esper.Processor):
             self.spawn_timer = 2.0
             self.wave_active = True
             self._build_wave_queue()
+            self.game.hud_system.set_wave(self.wave)
 
     def _build_wave_queue(self):
         """Build spawn queue from wave data."""

@@ -23,8 +23,11 @@ class CollisionSystem(esper.Processor):
                     # Remove enemy if dead
                     if health.current <= 0:
                         self.render_system.remove_widget(e_ent)
+                        score_map = {"basic": 10, "miniboss": 50, "boss": 200}
+                        enemy = esper.try_component(e_ent, Enemy)
+                        score = score_map.get(enemy.kind, 10) if enemy else 10
                         esper.delete_entity(e_ent)
-                        esper.dispatch_event("enemy_killed", 10)
+                        esper.dispatch_event("enemy_killed", score)
                     break  # Bullet already consumed
 
         # Enemy bullets → player (future: when enemies shoot)

@@ -2,15 +2,18 @@ import esper
 from components import Health, Player
 from kivy.uix.label import Label
 from kivy.uix.progressbar import ProgressBar
+from data.zones import get_zone, get_wave_in_zone, WAVES_PER_ZONE
 
 
 class HudSystem(esper.Processor):
-    """Overlay: score, HP bar, wave number. Registers for esper events."""
+    """Overlay: score, HP bar, zone + wave. Registers for esper events."""
 
     def __init__(self, game_widget):
         self.game = game_widget
         self.score = 0
         self.wave = 1
+        self.zone_name = ""
+        self.wave_in_zone = 1
 
         # Score label (top-left)
         self.score_label = Label(
@@ -57,7 +60,7 @@ class HudSystem(esper.Processor):
 
         # Update score text
         self.score_label.text = f"Score: {self.score}"
-        self.wave_label.text = f"Wave {self.wave}"
+        self.wave_label.text = f"{self.zone_name} - Wave {self.wave_in_zone}/{WAVES_PER_ZONE}"
 
         # Update HP bar from player Health
         for ent, (health, _) in esper.get_components(Health, Player):
@@ -66,3 +69,6 @@ class HudSystem(esper.Processor):
 
     def set_wave(self, wave: int):
         self.wave = wave
+        zone = get_zone(wave)
+        self.zone_name = zone.name
+        self.wave_in_zone = get_wave_in_zone(wave)
