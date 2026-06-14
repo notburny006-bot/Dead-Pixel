@@ -1,9 +1,13 @@
 import esper
-from components import Position, Renderable, Player
+from components import Position, Renderable, Player, Enemy, Health
+
+
+ENEMY_BOTTOM_DAMAGE = 10  # damage to player when enemy reaches bottom
 
 
 class CleanupSystem(esper.Processor):
-    """Remove off-screen entities and their widgets. Never deletes the player."""
+    """Remove off-screen entities and their widgets. Never deletes the player.
+    Enemies reaching the bottom damage the player before being removed."""
 
     def __init__(self, game_widget, render_system):
         self.game = game_widget
@@ -28,5 +32,19 @@ class CleanupSystem(esper.Processor):
                 to_delete.append(ent)
 
         for ent in to_delete:
+            # Enemy reaching bottom = player takes damage
+            if esper.has_component(ent, Enemy):
+                pos = esper.try_component(ent, Position)
+                if pos and pos.y < 0:
+                    self._damage_player(ENEMY_BOTTOM_DAMAGE)
+
             self.render_system.remove_widget(ent)
             esper.delete_entity(ent)
+
+    def _damage_player(self, damage: int):
+        """Deal damage to the player entity."""
+        for ent, (health, _) in esper.get_components(Health, Player):
+            health.current -= damage
+            if health.current <= 0:
+                health.current = 0
+                esper.dispatch_event("player_died")
