@@ -1,4 +1,5 @@
 import esper
+from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 
@@ -10,33 +11,23 @@ from systems.collision_system import CollisionSystem
 from systems.spawn_system import SpawnSystem
 from systems.cleanup_system import CleanupSystem
 from systems.hud_system import HudSystem
-from ui.game_over_screen import GameOverScreen
 from factories.player_factory import create_player
+from data.ships import SHIPS
 
 
-class DeadPixelGame(Widget):
-    """Main game widget. Manages esper ECS + Kivy rendering."""
+class GameWidget(Widget):
+    """Game rendering + ECS logic. Embedded inside GameScreen."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, ship_id: str, **kwargs):
         super().__init__(**kwargs)
+        self.ship_id = ship_id
         esper.clear_database()
-
-        # Systems
         self._setup_systems()
-
-        # Game over screen (overlay)
-        self.game_over_screen = GameOverScreen(self, self.hud_system)
-        self.add_widget(self.game_over_screen)
-
-        # Player entity created on first update (need width/height)
         self.player_entity = None
-
-        # Game loop at 60fps
         self.game_loop = Clock.schedule_interval(self.update, 1 / 60)
         self._paused = False
 
     def _setup_systems(self):
-        """Register all ECS processors."""
         self.input_system = InputSystem(self)
         self.render_system = RenderSystem(self)
         self.hud_system = HudSystem(self)
@@ -48,10 +39,15 @@ class DeadPixelGame(Widget):
         esper.add_processor(SpawnSystem(self), priority=5)
         esper.add_processor(CleanupSystem(self, self.render_system), priority=6)
         esper.add_processor(self.hud_system, priority=7)
+        esper.set_handler("player_died", self._on_player_died)
 
     def _create_player(self):
-        """Create player using factory."""
-        self.player_entity = create_player(self.width, self.height)
+        self.player_entity = create_player(self.width, self.height, ship_id=self.ship_id)
+
+    def _on_player_died(self):
+        self.pause()
+        game_over = self.parent.parent.get_screen("game_over")
+        game_over.show(self.hud_system.score, self.hud_system.wave)
 
     def on_touch_down(self, touch):
         if self._paused:
@@ -69,10 +65,8 @@ class DeadPixelGame(Widget):
         self.input_system.on_touch_up(touch)
 
     def update(self, dt):
-        # Create player on first frame when dimensions are valid
         if self.player_entity is None and self.width > 0:
             self._create_player()
-
         esper.process(dt)
 
     def pause(self):
@@ -84,17 +78,24 @@ class DeadPixelGame(Widget):
             self.game_loop = Clock.schedule_interval(self.update, 1 / 60)
             self._paused = False
 
-    def restart(self):
-        """Full game reset. Called from GameOverScreen."""
-        self.render_system.clear_all()
+
+class GameScreen(Screen):
+    """Screen wrapper — creates fresh GameWidget on enter."""
+
+    def __init__(self, **kwargs):
+        super().__init__(name="game", **kwargs)
+        self.game_widget = None
+
+    def on_enter(self, *args):
+        if self.game_widget:
+            self.game_widget.render_system.clear_all()
+            self.remove_widget(self.game_widget)
         esper.clear_database()
 
-        self._setup_systems()
-        self.player_entity = None
-        self.hud_system.score = 0
-        self.hud_system.wave = 1
+        ship_id = self.parent.selected_ship_id
+        self.game_widget = GameWidget(ship_id)
+        self.add_widget(self.game_widget)
 
-        # Re-register game over handler
-        esper.set_handler("player_died", self.game_over_screen._on_player_died)
-
-        self.resume()
+    def on_leave(self, *args):
+        if self.game_widget:
+            self.game_widget.pause()

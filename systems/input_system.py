@@ -1,6 +1,5 @@
 import esper
-from components import Position, Velocity, Speed, Player
-from constants import PLAYER_SIZE
+from components import Position, Velocity, Speed, Player, Collider
 
 
 class InputSystem(esper.Processor):
@@ -26,9 +25,11 @@ class InputSystem(esper.Processor):
                 vel.dy = 0
                 continue
 
-            # Direction from player center to touch
-            center_x = pos.x + PLAYER_SIZE / 2
-            center_y = pos.y + PLAYER_SIZE / 2
+            collider = esper.try_component(ent, Collider)
+            size = collider.width if collider else 48
+
+            center_x = pos.x + size / 2
+            center_y = pos.y + size / 2
             dx = self.touch_pos[0] - center_x
             dy = self.touch_pos[1] - center_y
             dist = (dx * dx + dy * dy) ** 0.5

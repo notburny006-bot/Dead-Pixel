@@ -1,6 +1,5 @@
 import esper
-from components import Position, Velocity, Player, Friction
-from constants import PLAYER_SIZE
+from components import Position, Velocity, Player, Friction, Collider
 
 
 class MovementSystem(esper.Processor):
@@ -27,5 +26,7 @@ class MovementSystem(esper.Processor):
 
             # Clamp player to screen bounds
             if esper.has_component(ent, Player):
-                pos.x = max(0, min(pos.x, self.game.width - PLAYER_SIZE))
-                pos.y = max(0, min(pos.y, self.game.height - PLAYER_SIZE))
+                collider = esper.try_component(ent, Collider)
+                size = collider.width if collider else 48
+                pos.x = max(0, min(pos.x, self.game.width - size))
+                pos.y = max(0, min(pos.y, self.game.height - size))

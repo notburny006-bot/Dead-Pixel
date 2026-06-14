@@ -467,14 +467,30 @@ class SynergySystem(esper.Processor):
 - HudSystem: score + HP + wave number display
 - **Test:** waves progress, die → game over → restart
 
-### v0.5 — Upgrades
+### v0.5 — Ship Selection (CURRENT)
+- `data/ships.py`: ShipDef dataclass + 3 ships (phantom_wing, viper_scout, serpent_class)
+- `ui/ship_select_screen.py`: carousel with arrows, preview image, stats display
+- `ui/screen_manager.py`: selected_ship_id state, go_game(ship_id)
+- `game.py`: GameWidget takes ship_id, passes to player factory
+- `factories/player_factory.py`: create_player(ship_id=...) reads ShipDef
+- Main menu PLAY → ship_select (was direct to game)
+- Ship art at 192px in assets/ships_ascii/final/
+
+**Pre-commit checklist:**
+- [x] Ship select default image uses first SHIP_ORDER entry
+- [x] Final ship PNGs exist at assets/ships_ascii/final/{phantom_wing,viper_scout,serpent_class}.png
+- [x] Static Python compile checks pass
+- [ ] App runs interactively: `python main.py`
+- [ ] Carousel cycles 3 ships, stats update, SELECT starts game with correct ship
+
+### v0.6 — Upgrades
 - UpgradeDef dataclass + UPGRADES list
 - UpgradeScreen: pick 1 of 3 between waves
 - apply_upgrade(): modify player components
 - Wave clear detection → show upgrade → next wave
 - **Test:** wave clears, pick upgrade, stat changes apply
 
-### v0.5b — Shop + Synergies
+### v0.6b — Shop + Synergies
 - ShopItemDef dataclass + SHOP_ITEMS list
 - ShopSystem: buy items with currency
 - ShopScreen: overlay with items + prices, appears every 5 waves
