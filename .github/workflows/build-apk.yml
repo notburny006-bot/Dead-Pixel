@@ -42,8 +42,8 @@ jobs:
           path: |
             ~/.buildozer
             .buildozer
-          key: buildozer-v3-${{ hashFiles('buildozer.spec') }}
-          restore-keys: buildozer-v3-
+          key: buildozer-v4-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-v4-
 
       - name: Pre-install build-tools into buildozer SDK
         run: |
