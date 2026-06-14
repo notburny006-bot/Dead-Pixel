@@ -49,7 +49,7 @@ class BossAI:
 @dataclass
 class MinibossAI:
     """Miniboss behavior state."""
-    strafe_timer: float = 0.0
+    strafe_timer: float = 1.5
     direction: int = 1
 
 @dataclass

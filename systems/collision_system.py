@@ -10,6 +10,9 @@ class CollisionSystem(esper.Processor):
         self.render_system = render_system
 
     def process(self, dt):
+        to_delete = []  # (entity_id, is_enemy, score_or_None)
+        hit_enemies = {}  # enemy_ent → damage taken
+
         # Player bullets → enemies
         for b_ent, (b_pos, b_col, bullet) in esper.get_components(Position, Collider, Bullet):
             if bullet.owner != "player":
@@ -17,31 +20,32 @@ class CollisionSystem(esper.Processor):
             for e_ent, (e_pos, e_col, health, _) in esper.get_components(Position, Collider, Health, Enemy):
                 if self._aabb_overlap(b_pos, b_col, e_pos, e_col):
                     health.current -= bullet.damage
-                    # Remove bullet
-                    self.render_system.remove_widget(b_ent)
-                    esper.delete_entity(b_ent)
-                    # Remove enemy if dead
+                    to_delete.append((b_ent, False, None))
                     if health.current <= 0:
-                        self.render_system.remove_widget(e_ent)
                         score_map = {"basic": 10, "miniboss": 50, "boss": 200}
                         enemy = esper.try_component(e_ent, Enemy)
                         score = score_map.get(enemy.kind, 10) if enemy else 10
-                        esper.delete_entity(e_ent)
-                        esper.dispatch_event("enemy_killed", score)
-                    break  # Bullet already consumed
+                        to_delete.append((e_ent, True, score))
+                    break
 
-        # Enemy bullets → player (future: when enemies shoot)
+        # Enemy bullets → player
         for b_ent, (b_pos, b_col, bullet) in esper.get_components(Position, Collider, Bullet):
             if bullet.owner != "enemy":
                 continue
             for p_ent, (p_pos, p_col, health, _) in esper.get_components(Position, Collider, Health, Player):
                 if self._aabb_overlap(b_pos, b_col, p_pos, p_col):
                     health.current -= bullet.damage
-                    self.render_system.remove_widget(b_ent)
-                    esper.delete_entity(b_ent)
+                    to_delete.append((b_ent, False, None))
                     if health.current <= 0:
                         esper.dispatch_event("player_died")
                     break
+
+        # Defer all deletions until after iteration
+        for ent, is_enemy, score in to_delete:
+            self.render_system.remove_widget(ent)
+            esper.delete_entity(ent)
+            if is_enemy and score:
+                esper.dispatch_event("enemy_killed", score)
 
     @staticmethod
     def _aabb_overlap(pos_a, col_a, pos_b, col_b) -> bool:

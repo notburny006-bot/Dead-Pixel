@@ -31,5 +31,5 @@ class WeaponSystem(esper.Processor):
             if weapon.fire_cooldown <= 0:
                 weapon.fire_cooldown = weapon.fire_rate
                 bx = pos.x + collider.width / 2
-                by = pos.y + collider.height
+                by = pos.y
                 create_bullet(bx, by, weapon.damage, owner="enemy")

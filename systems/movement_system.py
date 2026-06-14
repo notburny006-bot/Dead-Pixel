@@ -49,11 +49,14 @@ class MovementSystem(esper.Processor):
                     ai.direction *= -1
                     ai.strafe_timer = 1.5
                 vel.dx = 80 * ai.direction
-                # Clamp to screen
                 collider = esper.try_component(ent, Collider)
                 size = collider.width if collider else 56
-                if pos.x <= 0 or pos.x >= self.game.width - size:
-                    ai.direction *= -1
+                if pos.x <= 0:
+                    pos.x = 0
+                    ai.direction = 1
+                elif pos.x >= self.game.width - size:
+                    pos.x = self.game.width - size
+                    ai.direction = -1
 
         elif enemy.kind == "boss":
             ai = esper.try_component(ent, BossAI)
@@ -64,8 +67,11 @@ class MovementSystem(esper.Processor):
                     ai.direction *= -1
                     ai.move_timer = 2.0
                 vel.dx = 60 * ai.direction
-                # Clamp to screen
                 collider = esper.try_component(ent, Collider)
                 size = collider.width if collider else 72
-                if pos.x <= 0 or pos.x >= self.game.width - size:
-                    ai.direction *= -1
+                if pos.x <= 0:
+                    pos.x = 0
+                    ai.direction = 1
+                elif pos.x >= self.game.width - size:
+                    pos.x = self.game.width - size
+                    ai.direction = -1

@@ -8,6 +8,7 @@ from components import (
 )
 from data.enemies import ENEMIES, HP_SCALE_PER_WAVE, SPEED_SCALE_PER_WAVE
 from data.zones import get_zone
+from constants import MAX_ENEMY_SPEED
 
 
 def create_enemy(enemy_type: str, x: float, y: float, wave: int) -> int:
@@ -16,7 +17,7 @@ def create_enemy(enemy_type: str, x: float, y: float, wave: int) -> int:
     zone = get_zone(wave)
 
     hp = (defn.base_hp + (wave - 1) * HP_SCALE_PER_WAVE) * zone.hp_mult
-    speed = (defn.base_speed + (wave - 1) * SPEED_SCALE_PER_WAVE) * zone.speed_mult
+    speed = min((defn.base_speed + (wave - 1) * SPEED_SCALE_PER_WAVE) * zone.speed_mult, MAX_ENEMY_SPEED)
 
     enemy_comp = Enemy(kind=enemy_type)
     extra = []
