@@ -30,6 +30,7 @@ class GameWidget(Widget):
 
     def _reset(self):
         """Reset ECS for a new run without re-creating GameWidget."""
+        self.game_loop.cancel()
         self.render_system.clear_all()
         esper.clear_database()
         self._setup_systems()
