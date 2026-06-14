@@ -1,9 +1,13 @@
 import sys
+import traceback
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from kivy.app import App
 from kivy.core.window import Window
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
+from kivy.uix.scrollview import ScrollView
 
 import esper
 from ui.screen_manager import AppScreenManager
@@ -45,5 +49,21 @@ class DeadPixelApp(App):
         return screen.game_widget if screen else None
 
 
+def _show_error_popup(exc_type, exc_value, exc_tb):
+    tb_text = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    # Also log to file for reading after app closes
+    with open(Path(__file__).resolve().parent / "crash.log", "w") as f:
+        f.write(tb_text)
+    sv = ScrollView(size_hint=(1, 1))
+    lbl = Label(text=tb_text, size_hint_y=None, font_size="12sp",
+                color=(1, 0.3, 0.3, 1), halign="left", valign="top")
+    lbl.bind(width=lambda *a: setattr(lbl, "text_size", (lbl.width, None)))
+    lbl.bind(texture_size=lambda *a: setattr(lbl, "size", lbl.texture_size))
+    sv.add_widget(lbl)
+    Popup(title="Dead Pixel - Error", content=sv,
+          size_hint=(0.95, 0.8)).open()
+
+
 if __name__ == "__main__":
+    sys.excepthook = lambda t, v, tb: _show_error_popup(t, v, tb)
     DeadPixelApp().run()
