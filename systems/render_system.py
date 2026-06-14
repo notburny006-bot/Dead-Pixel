@@ -16,8 +16,7 @@ class RenderSystem(esper.Processor):
                 rend.widget = Image(
                     source=rend.source,
                     size=rend.size,
-                    allow_stretch=True,
-                    keep_ratio=True,
+                    fit_mode="contain",
                 )
                 self.game.add_widget(rend.widget)
                 self._widget_map[ent] = rend.widget

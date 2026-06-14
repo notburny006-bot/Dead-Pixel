@@ -30,6 +30,7 @@ class GameWidget(Widget):
 
     def _reset(self):
         """Reset ECS for a new run without re-creating GameWidget."""
+        self.render_system.clear_all()
         esper.clear_database()
         self._setup_systems()
         self.player_entity = None
@@ -43,10 +44,10 @@ class GameWidget(Widget):
         esper.add_processor(self.input_system, priority=0)
         esper.add_processor(WeaponSystem(), priority=1)
         esper.add_processor(MovementSystem(self), priority=2)
-        esper.add_processor(self.render_system, priority=3)
-        esper.add_processor(CollisionSystem(self, self.render_system), priority=4)
-        esper.add_processor(SpawnSystem(self), priority=5)
-        esper.add_processor(CleanupSystem(self, self.render_system), priority=6)
+        esper.add_processor(CollisionSystem(self, self.render_system), priority=3)
+        esper.add_processor(SpawnSystem(self), priority=4)
+        esper.add_processor(CleanupSystem(self, self.render_system), priority=5)
+        esper.add_processor(self.render_system, priority=6)
         esper.add_processor(self.hud_system, priority=7)
         esper.set_handler("player_died", self._on_player_died)
 
