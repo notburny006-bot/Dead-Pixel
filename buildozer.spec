@@ -3,7 +3,7 @@ title = Dead Pixel
 package.name = deadpixel
 package.domain = com.deadpixel.game
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py,png,jpg,kv,atlas,txt,log
 version = 0.6
 
 requirements = python3,kivy==2.3.0,esper==3.7,pillow

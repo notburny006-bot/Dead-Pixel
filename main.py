@@ -5,86 +5,95 @@ from pathlib import Path
 BASE_DIR = str(Path(__file__).resolve().parent)
 sys.path.insert(0, BASE_DIR)
 
-CRASH_LOG = Path(BASE_DIR) / "crash.log"
 
-
-def _get_crash_log_path():
-    """Get writable crash log path. App internal dir on Android, local dir otherwise."""
+def _get_crash_log_paths():
+    paths = []
     try:
         from android.storage import app_storage_path
-        return Path(app_storage_path()) / "crash.log"
-    except ImportError:
-        return CRASH_LOG
+        paths.append(Path(app_storage_path()) / "crash.log")
+    except Exception:
+        pass
+    for raw in (
+        "/sdcard/deadpixel_crash.log",
+        "/storage/emulated/0/deadpixel_crash.log",
+        str(Path(BASE_DIR) / "crash.log"),
+    ):
+        paths.append(Path(raw))
+    return paths
 
 
 def _write_crash(text):
-    """Always write crash to file — this never fails."""
-    log_path = _get_crash_log_path()
-    try:
-        with open(log_path, "w") as f:
-            f.write(text)
-    except Exception:
+    print(text, file=sys.stderr)
+    for path in _get_crash_log_paths():
         try:
-            # Fallback: try /sdcard/
-            with open("/sdcard/deadpixel_crash.log", "w") as f:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w") as f:
                 f.write(text)
         except Exception:
             pass
-    print(text, file=sys.stderr)
 
 
 def _patch_kivy_clock():
-    """Wrap Clock._tick to catch exceptions from scheduled callbacks.
-
-    Kivy silently swallows exceptions in Clock.schedule_interval callbacks.
-    This patch catches them, writes to crash.log, and shows a popup.
-    """
     from kivy.clock import Clock
-    _orig_tick = Clock._tick
+    orig_tick = Clock._tick
 
-    def _safe_tick(self, *args, **kwargs):
+    def safe_tick(*args, **kwargs):
         try:
-            return _orig_tick(self, *args, **kwargs)
-        except Exception:
+            return orig_tick(*args, **kwargs)
+        except BaseException:
             text = traceback.format_exc()
             _write_crash(text)
             try:
-                _show_crash_popup(text)
+                _show_crash_screen(text)
             except Exception:
                 pass
             return False
 
-    Clock._tick = _safe_tick
+    Clock._tick = safe_tick
 
 
-def _show_crash_popup(text):
-    """Show scrollable traceback in a Kivy popup."""
-    from kivy.uix.popup import Popup
+def _show_crash_screen(text):
+    from kivy.app import App
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.button import Button
     from kivy.uix.label import Label
     from kivy.uix.scrollview import ScrollView
+
+    app = App.get_running_app()
+    if not app or not app.root:
+        return
+
+    root = BoxLayout(orientation="vertical", padding=10, spacing=10)
+    title = Label(text="DEAD PIXEL CRASH", size_hint_y=None, height=40,
+                  color=(1, 0.2, 0.2, 1), font_size="20sp")
     sv = ScrollView(size_hint=(1, 1))
     lbl = Label(text=text, size_hint_y=None, font_size="12sp",
                 color=(1, 0.3, 0.3, 1), halign="left", valign="top")
     lbl.bind(width=lambda *a: setattr(lbl, "text_size", (lbl.width, None)))
     lbl.bind(texture_size=lambda *a: setattr(lbl, "size", lbl.texture_size))
     sv.add_widget(lbl)
-    Popup(title="DEAD PIXEL - CRASH", content=sv,
-          size_hint=(0.95, 0.8)).open()
+    close = Button(text="Close App", size_hint_y=None, height=50)
+    close.bind(on_press=lambda *a: app.stop())
+    root.add_widget(title)
+    root.add_widget(sv)
+    root.add_widget(close)
+    app.root.clear_widgets()
+    app.root.add_widget(root)
+
+
+def _clear_old_crash_logs():
+    for path in _get_crash_log_paths():
+        try:
+            if path.exists():
+                path.unlink()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
-    # Delete old crash log on fresh start
-    log_path = _get_crash_log_path()
-    if log_path.exists():
-        log_path.unlink()
-    # Also clean fallback location
-    fb = Path("/sdcard/deadpixel_crash.log")
-    if fb.exists():
-        fb.unlink()
-
+    _clear_old_crash_logs()
     try:
         from kivy.app import App
-        from kivy.clock import Clock
         import esper
         from ui.screen_manager import AppScreenManager
         from ui.main_menu_screen import MainMenuScreen
@@ -92,7 +101,6 @@ if __name__ == "__main__":
         from ui.game_over_screen import GameOverScreen
         from game import GameScreen
 
-        # Patch Clock BEFORE app starts so all callbacks are covered
         _patch_kivy_clock()
 
         class DeadPixelApp(App):
@@ -118,7 +126,7 @@ if __name__ == "__main__":
 
             def on_stop(self):
                 game = self._get_game()
-                if game and hasattr(game, 'render_system'):
+                if game and hasattr(game, "render_system"):
                     game.render_system.clear_all()
                 esper.clear_database()
 
@@ -128,7 +136,5 @@ if __name__ == "__main__":
 
         DeadPixelApp().run()
 
-    except Exception:
-        # Catches import errors and build() failures
-        text = traceback.format_exc()
-        _write_crash(text)
+    except BaseException:
+        _write_crash(traceback.format_exc())
