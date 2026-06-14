@@ -31,11 +31,7 @@ Entity Component System — data is separate from logic:
 
 ```
 Frame loop:
-  InputSystem → WeaponSystem → MovementSystem → RenderSystem
-                                    ↑               |
-                              CollisionSystem   CleanupSystem
-                                    |
-                              SpawnSystem
+  InputSystem → WeaponSystem → MovementSystem → CollisionSystem → SpawnSystem → CleanupSystem → RenderSystem → HudSystem
 ```
 
 ## Running
@@ -49,35 +45,40 @@ python3 main.py
 buildozer android debug
 ```
 
-## Current Version: v0.3
+## Current Version: v0.6
 
 - [x] Player movement (drag-to-move, velocity-based)
 - [x] Auto-fire bullets
 - [x] Enemy spawning with wave scaling
 - [x] AABB collision detection
 - [x] Score tracking via events
-- [ ] Game over screen + restart (v0.4)
-- [ ] Upgrade system between waves (v0.5)
-- [ ] Tilt/accelerometer input (v0.6)
-- [ ] Multiple enemy types (future)
-- [ ] Shop + meta-progression (future)
+- [x] Game over screen + restart
+- [x] Ship selection (3 ships)
+- [x] Zone/wave system (6 waves per zone, miniboss + boss)
+- [x] Enemy AI behaviors (basic, miniboss strafe, boss patrol + shoot)
+- [ ] Upgrade system between waves
+- [ ] Tilt/accelerometer input
+- [ ] More zones
+- [ ] Shop + meta-progression
 
 ## Project Structure
 
 ```
-space-hunter/
+dead-pixel/
 ├── main.py                    # App entry + lifecycle
 ├── game.py                    # Game loop + system wiring
 ├── constants.py               # Game-wide constants
 ├── buildozer.spec             # APK build config
-├── generate_assets.py         # ASCII art → PNG
 ├── components/__init__.py     # ECS data classes
 ├── factories/
 │   ├── player_factory.py
 │   ├── enemy_factory.py
 │   └── bullet_factory.py
 ├── data/
-│   └── enemies.py             # Enemy definitions + scaling
+│   ├── enemies.py             # Enemy definitions + scaling
+│   ├── zones.py               # Zone biomes
+│   ├── waves.py               # Wave composition
+│   └── ships.py               # Ship definitions
 ├── systems/
 │   ├── input_system.py
 │   ├── movement_system.py
@@ -85,7 +86,13 @@ space-hunter/
 │   ├── collision_system.py
 │   ├── spawn_system.py
 │   ├── render_system.py
-│   └── cleanup_system.py
+│   ├── cleanup_system.py
+│   └── hud_system.py
+├── ui/
+│   ├── screen_manager.py
+│   ├── main_menu_screen.py
+│   ├── ship_select_screen.py
+│   └── game_over_screen.py
 └── assets/                    # Sprite PNGs
 ```
 

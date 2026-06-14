@@ -1,10 +1,10 @@
 [app]
 title = Dead Pixel
-package.name = spacehunter
-package.domain = com.spacehunter.game
+package.name = deadpixel
+package.domain = com.deadpixel.game
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
-version = 0.1
+version = 0.6
 
 requirements = python3,kivy,esper,pillow
 
