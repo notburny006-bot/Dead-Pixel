@@ -8,13 +8,28 @@ sys.path.insert(0, BASE_DIR)
 CRASH_LOG = Path(BASE_DIR) / "crash.log"
 
 
+def _get_crash_log_path():
+    """Get writable crash log path. App internal dir on Android, local dir otherwise."""
+    try:
+        from android.storage import app_storage_path
+        return Path(app_storage_path()) / "crash.log"
+    except ImportError:
+        return CRASH_LOG
+
+
 def _write_crash(text):
     """Always write crash to file — this never fails."""
+    log_path = _get_crash_log_path()
     try:
-        with open(CRASH_LOG, "w") as f:
+        with open(log_path, "w") as f:
             f.write(text)
     except Exception:
-        pass
+        try:
+            # Fallback: try /sdcard/
+            with open("/sdcard/deadpixel_crash.log", "w") as f:
+                f.write(text)
+        except Exception:
+            pass
     print(text, file=sys.stderr)
 
 
@@ -59,8 +74,13 @@ def _show_crash_popup(text):
 
 if __name__ == "__main__":
     # Delete old crash log on fresh start
-    if CRASH_LOG.exists():
-        CRASH_LOG.unlink()
+    log_path = _get_crash_log_path()
+    if log_path.exists():
+        log_path.unlink()
+    # Also clean fallback location
+    fb = Path("/sdcard/deadpixel_crash.log")
+    if fb.exists():
+        fb.unlink()
 
     try:
         from kivy.app import App
