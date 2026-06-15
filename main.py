@@ -5,14 +5,6 @@ from pathlib import Path
 BASE_DIR = str(Path(__file__).resolve().parent)
 sys.path.insert(0, BASE_DIR)
 
-from kivy.app import App
-import esper
-from ui.screen_manager import AppScreenManager
-from ui.main_menu_screen import MainMenuScreen
-from ui.ship_select_screen import ShipSelectScreen
-from ui.game_over_screen import GameOverScreen
-from game import GameScreen
-
 
 def _get_crash_log_paths():
     paths = []
@@ -41,6 +33,34 @@ def _write_crash(text):
             pass
 
 
+def _show_crash_screen(text):
+    from kivy.app import App
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.button import Button
+    from kivy.uix.label import Label
+    from kivy.uix.scrollview import ScrollView
+
+    class CrashApp(App):
+        def build(self):
+            root = BoxLayout(orientation="vertical", padding=10, spacing=10)
+            title = Label(text="DEAD PIXEL CRASH", size_hint_y=None, height=40,
+                          color=(1, 0.2, 0.2, 1), font_size="20sp")
+            sv = ScrollView(size_hint=(1, 1))
+            lbl = Label(text=text, size_hint_y=None, font_size="12sp",
+                        color=(1, 0.3, 0.3, 1), halign="left", valign="top")
+            lbl.bind(width=lambda *a: setattr(lbl, "text_size", (lbl.width, None)))
+            lbl.bind(texture_size=lambda *a: setattr(lbl, "size", lbl.texture_size))
+            sv.add_widget(lbl)
+            close = Button(text="Close App", size_hint_y=None, height=50)
+            close.bind(on_press=lambda *a: self.stop())
+            root.add_widget(title)
+            root.add_widget(sv)
+            root.add_widget(close)
+            return root
+
+    CrashApp().run()
+
+
 def _patch_kivy_clock():
     from kivy.clock import Clock
     orig_tick = Clock._tick
@@ -60,66 +80,65 @@ def _patch_kivy_clock():
     Clock._tick = safe_tick
 
 
-def _show_crash_screen(text):
-    from kivy.uix.boxlayout import BoxLayout
-    from kivy.uix.button import Button
-    from kivy.uix.label import Label
-    from kivy.uix.scrollview import ScrollView
+class DeadPixelApp:
+    """Lazy wrapper — real class built after safe imports."""
+    pass
 
-    app = App.get_running_app()
-    if not app or not app.root:
+
+def _build_app_class():
+    """Build real app class with all imports inside try/except."""
+    global DeadPixelApp
+
+    try:
+        import esper
+        from ui.screen_manager import AppScreenManager
+        from ui.main_menu_screen import MainMenuScreen
+        from ui.ship_select_screen import ShipSelectScreen
+        from ui.game_over_screen import GameOverScreen
+        from game import GameScreen
+    except Exception:
+        text = traceback.format_exc()
+        _write_crash(text)
+        _show_crash_screen(text)
         return
 
-    root = BoxLayout(orientation="vertical", padding=10, spacing=10)
-    title = Label(text="DEAD PIXEL CRASH", size_hint_y=None, height=40,
-                  color=(1, 0.2, 0.2, 1), font_size="20sp")
-    sv = ScrollView(size_hint=(1, 1))
-    lbl = Label(text=text, size_hint_y=None, font_size="12sp",
-                color=(1, 0.3, 0.3, 1), halign="left", valign="top")
-    lbl.bind(width=lambda *a: setattr(lbl, "text_size", (lbl.width, None)))
-    lbl.bind(texture_size=lambda *a: setattr(lbl, "size", lbl.texture_size))
-    sv.add_widget(lbl)
-    close = Button(text="Close App", size_hint_y=None, height=50)
-    close.bind(on_press=lambda *a: app.stop())
-    root.add_widget(title)
-    root.add_widget(sv)
-    root.add_widget(close)
-    app.root.clear_widgets()
-    app.root.add_widget(root)
+    from kivy.app import App
 
+    class _DeadPixelApp(App):
+        def build(self):
+            _patch_kivy_clock()
+            self.sm = AppScreenManager()
+            self.sm.add_widget(MainMenuScreen())
+            self.sm.add_widget(ShipSelectScreen())
+            self.sm.add_widget(GameScreen())
+            self.sm.add_widget(GameOverScreen())
+            self.sm.current = "main_menu"
+            return self.sm
 
-class DeadPixelApp(App):
-    def build(self):
-        self.sm = AppScreenManager()
-        self.sm.add_widget(MainMenuScreen())
-        self.sm.add_widget(ShipSelectScreen())
-        self.sm.add_widget(GameScreen())
-        self.sm.add_widget(GameOverScreen())
-        self.sm.current = "main_menu"
-        return self.sm
+        def on_pause(self):
+            game = self._get_game()
+            if game:
+                game.pause()
+            return True
 
-    def on_pause(self):
-        game = self._get_game()
-        if game:
-            game.pause()
-        return True
+        def on_resume(self):
+            game = self._get_game()
+            if game:
+                game.resume()
 
-    def on_resume(self):
-        game = self._get_game()
-        if game:
-            game.resume()
+        def on_stop(self):
+            game = self._get_game()
+            if game and hasattr(game, "render_system"):
+                game.render_system.clear_all()
+            esper.clear_database()
 
-    def on_stop(self):
-        game = self._get_game()
-        if game and hasattr(game, "render_system"):
-            game.render_system.clear_all()
-        esper.clear_database()
+        def _get_game(self):
+            screen = self.sm.get_screen("game") if self.sm.has_screen("game") else None
+            return screen.game_widget if screen else None
 
-    def _get_game(self):
-        screen = self.sm.get_screen("game") if self.sm.has_screen("game") else None
-        return screen.game_widget if screen else None
+    DeadPixelApp = _DeadPixelApp
 
 
 if __name__ == "__main__":
-    _patch_kivy_clock()
+    _build_app_class()
     DeadPixelApp().run()
