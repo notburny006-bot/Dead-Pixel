@@ -33,6 +33,16 @@ def _write_crash(text):
             pass
 
 
+def _append_crash_log(text):
+    for path in _get_crash_log_paths():
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "a") as f:
+                f.write(text + "\n")
+        except Exception:
+            pass
+
+
 def _show_crash_screen(text):
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
@@ -61,44 +71,51 @@ def _show_crash_screen(text):
     CrashApp().run()
 
 
-def _patch_kivy_clock():
-    from kivy.clock import Clock
-    orig_tick = Clock.tick
+def _install_kivy_exception_handler():
+    try:
+        from kivy.base import ExceptionHandler, ExceptionManager
 
-    def safe_tick(*args, **kwargs):
-        try:
-            return orig_tick(*args, **kwargs)
-        except BaseException:
-            text = traceback.format_exc()
-            _write_crash(text)
-            try:
-                _show_crash_screen(text)
-            except Exception:
-                pass
+        class DeadPixelExceptionHandler(ExceptionHandler):
+            def handle_exception(self, inst):
+                text = "".join(
+                    traceback.format_exception(type(inst), inst, inst.__traceback__)
+                )
+                _write_crash(text)
+                return ExceptionManager.PASS
 
-    Clock.tick = safe_tick
+        ExceptionManager.add_handler(DeadPixelExceptionHandler())
+    except Exception:
+        _append_crash_log("Failed to install Kivy exception handler:")
+        _append_crash_log(traceback.format_exc())
 
 
 def main():
     try:
+        _append_crash_log("startup: begin")
         import esper
+        _append_crash_log("startup: imported esper")
         from kivy.app import App
+        _append_crash_log("startup: imported kivy App")
         from ui.screen_manager import AppScreenManager
         from ui.main_menu_screen import MainMenuScreen
         from ui.ship_select_screen import ShipSelectScreen
         from ui.game_over_screen import GameOverScreen
         from game import GameScreen
+        _append_crash_log("startup: imported screens")
 
-        _patch_kivy_clock()
+        _install_kivy_exception_handler()
+        _append_crash_log("startup: installed exception handler")
 
         class DeadPixelApp(App):
             def build(self):
+                _append_crash_log("startup: build begin")
                 self.sm = AppScreenManager()
                 self.sm.add_widget(MainMenuScreen())
                 self.sm.add_widget(ShipSelectScreen())
                 self.sm.add_widget(GameScreen())
                 self.sm.add_widget(GameOverScreen())
                 self.sm.current = "main_menu"
+                _append_crash_log("startup: build complete")
                 return self.sm
 
             def on_pause(self):
@@ -114,15 +131,16 @@ def main():
 
             def on_stop(self):
                 game = self._get_game()
-                if game and hasattr(game, "render_system"):
-                    game.render_system.clear_all()
-                esper.clear_database()
+                if game:
+                    game.destroy()
 
             def _get_game(self):
                 screen = self.sm.get_screen("game") if self.sm.has_screen("game") else None
                 return screen.game_widget if screen else None
 
+        _append_crash_log("startup: run app")
         DeadPixelApp().run()
+        _append_crash_log("startup: app stopped normally")
 
     except BaseException:
         text = traceback.format_exc()

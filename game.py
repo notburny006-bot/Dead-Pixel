@@ -1,3 +1,5 @@
+from itertools import count
+
 import esper
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
@@ -16,43 +18,68 @@ from factories.player_factory import create_player
 from data.ships import SHIPS
 
 
+_WORLD_COUNTER = count(1)
+
+
 class GameWidget(Widget):
     """Game rendering + ECS logic. Embedded inside GameScreen."""
 
     def __init__(self, ship_id: str, **kwargs):
         super().__init__(**kwargs)
         self.ship_id = ship_id
-        esper.clear_database()
+        self._world_name = self._make_world_name()
+        self._activate_world()
         self._setup_systems()
         self.player_entity = None
         self.game_loop = Clock.schedule_interval(self.update, 1 / 60)
         self._paused = False
 
+    def _make_world_name(self):
+        return f"game_{id(self)}_{next(_WORLD_COUNTER)}"
+
+    def _activate_world(self):
+        esper.switch_world(self._world_name)
+
+    def _delete_world(self, world_name):
+        try:
+            if esper.current_world == world_name:
+                esper.switch_world("default")
+            esper.delete_world(world_name)
+        except KeyError:
+            pass
+
     def _reset(self):
         """Reset ECS for a new run without re-creating GameWidget."""
-        self.game_loop.cancel()
-        self.render_system.clear_all()
-        esper.clear_database()
+        self.pause()
+        self._activate_world()
+        if hasattr(self, "render_system"):
+            self.render_system.clear_all()
+        old_world = self._world_name
+        self._world_name = self._make_world_name()
+        self._delete_world(old_world)
+        self._activate_world()
         self._setup_systems()
         self.player_entity = None
         self.game_loop = Clock.schedule_interval(self.update, 1 / 60)
         self._paused = False
 
     def _setup_systems(self):
+        self._activate_world()
         self.input_system = InputSystem(self)
         self.render_system = RenderSystem(self)
         self.hud_system = HudSystem(self)
-        esper.add_processor(self.input_system, priority=0)
-        esper.add_processor(WeaponSystem(), priority=1)
-        esper.add_processor(MovementSystem(self), priority=2)
-        esper.add_processor(CollisionSystem(self, self.render_system), priority=3)
-        esper.add_processor(SpawnSystem(self), priority=4)
-        esper.add_processor(CleanupSystem(self, self.render_system), priority=5)
-        esper.add_processor(self.render_system, priority=6)
-        esper.add_processor(self.hud_system, priority=7)
+        esper.add_processor(self.input_system, priority=70)
+        esper.add_processor(WeaponSystem(), priority=60)
+        esper.add_processor(MovementSystem(self), priority=50)
+        esper.add_processor(CollisionSystem(self, self.render_system), priority=40)
+        esper.add_processor(SpawnSystem(self), priority=30)
+        esper.add_processor(CleanupSystem(self, self.render_system), priority=20)
+        esper.add_processor(self.render_system, priority=10)
+        esper.add_processor(self.hud_system, priority=0)
         esper.set_handler("player_died", self._on_player_died)
 
     def _create_player(self):
+        self._activate_world()
         self.player_entity = create_player(self.width, self.height, ship_id=self.ship_id)
 
     def _on_player_died(self):
@@ -74,18 +101,31 @@ class GameWidget(Widget):
             self.input_system.on_touch_up(touch)
 
     def update(self, dt):
+        if self._paused:
+            return
+
+        self._activate_world()
         if self.player_entity is None and self.width > 0 and self.height > 0:
             self._create_player()
         esper.process(dt)
 
     def pause(self):
-        self.game_loop.cancel()
+        if self.game_loop is not None:
+            self.game_loop.cancel()
+            self.game_loop = None
         self._paused = True
 
     def resume(self):
-        if self._paused:
+        if self._paused and self.game_loop is None:
             self.game_loop = Clock.schedule_interval(self.update, 1 / 60)
             self._paused = False
+
+    def destroy(self):
+        self.pause()
+        self._activate_world()
+        if hasattr(self, "render_system"):
+            self.render_system.clear_all()
+        self._delete_world(self._world_name)
 
 
 class GameScreen(Screen):
@@ -101,6 +141,7 @@ class GameScreen(Screen):
         ship_id = self.parent.selected_ship_id
 
         if self.game_widget:
+            self.game_widget.ship_id = ship_id
             self.game_widget._reset()
         else:
             self.game_widget = GameWidget(ship_id)
