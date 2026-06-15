@@ -12,11 +12,20 @@ class GameOverScreen(Screen):
         super().__init__(name="game_over", **kwargs)
         self._score = 0
         self._wave = 0
+        with self.canvas.before:
+            Color(0.02, 0.02, 0.08, 1)
+            self._bg_rect = Rectangle(pos=self.pos, size=self.size)
         self._build_ui()
         self.bind(size=self._update_bg, pos=self._update_bg)
 
     def _build_ui(self):
-        layout = BoxLayout(orientation="vertical", spacing=20, padding=[50, 80])
+        layout = BoxLayout(
+            orientation="vertical",
+            spacing=20,
+            padding=[50, 80],
+            size_hint=(1, 1),
+            pos_hint={"x": 0, "y": 0},
+        )
 
         # Title
         layout.add_widget(Label(
@@ -73,7 +82,5 @@ class GameOverScreen(Screen):
         self.parent.go_menu()
 
     def _update_bg(self, *args):
-        self.canvas.before.clear()
-        with self.canvas.before:
-            Color(0.02, 0.02, 0.08, 1)
-            Rectangle(pos=self.pos, size=self.size)
+        self._bg_rect.pos = self.pos
+        self._bg_rect.size = self.size

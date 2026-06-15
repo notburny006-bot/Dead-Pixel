@@ -5,17 +5,25 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.graphics import Color, Rectangle
-from kivy.core.window import Window
 
 
 class MainMenuScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(name="main_menu", **kwargs)
+        with self.canvas.before:
+            Color(0.02, 0.02, 0.08, 1)
+            self._bg_rect = Rectangle(pos=self.pos, size=self.size)
         self._build_ui()
         self.bind(size=self._update_bg, pos=self._update_bg)
 
     def _build_ui(self):
-        layout = BoxLayout(orientation="vertical", spacing=30, padding=[50, 100])
+        layout = BoxLayout(
+            orientation="vertical",
+            spacing=30,
+            padding=[50, 100],
+            size_hint=(1, 1),
+            pos_hint={"x": 0, "y": 0},
+        )
 
         # Title
         title = Label(
@@ -57,7 +65,5 @@ class MainMenuScreen(Screen):
         self.parent.go_ship_select()
 
     def _update_bg(self, *args):
-        self.canvas.before.clear()
-        with self.canvas.before:
-            Color(0.02, 0.02, 0.08, 1)
-            Rectangle(pos=self.pos, size=self.size)
+        self._bg_rect.pos = self.pos
+        self._bg_rect.size = self.size

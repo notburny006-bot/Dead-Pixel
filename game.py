@@ -2,6 +2,7 @@ from itertools import count
 
 import esper
 from kivy.app import App
+from kivy.graphics import Color, Rectangle
 from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
@@ -27,6 +28,10 @@ class GameWidget(Widget):
     def __init__(self, ship_id: str, **kwargs):
         super().__init__(**kwargs)
         self.ship_id = ship_id
+        with self.canvas.before:
+            Color(0.02, 0.02, 0.08, 1)
+            self._bg_rect = Rectangle(pos=self.pos, size=self.size)
+        self.bind(pos=self._update_bg, size=self._update_bg)
         self._world_name = self._make_world_name()
         self._activate_world()
         self._setup_systems()
@@ -47,6 +52,10 @@ class GameWidget(Widget):
             esper.delete_world(world_name)
         except KeyError:
             pass
+
+    def _update_bg(self, *args):
+        self._bg_rect.pos = self.pos
+        self._bg_rect.size = self.size
 
     def _reset(self):
         """Reset ECS for a new run without re-creating GameWidget."""

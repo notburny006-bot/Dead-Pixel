@@ -7,7 +7,6 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.graphics import Color, Rectangle
-from kivy.clock import Clock
 
 from data.ships import SHIPS, ShipDef
 
@@ -18,11 +17,20 @@ class ShipSelectScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(name="ship_select", **kwargs)
         self._ship_index = 0
+        with self.canvas.before:
+            Color(0.02, 0.02, 0.08, 1)
+            self._bg_rect = Rectangle(pos=self.pos, size=self.size)
         self._build_ui()
         self.bind(size=self._update_bg, pos=self._update_bg)
 
     def _build_ui(self):
-        root = BoxLayout(orientation="vertical", padding=[30, 40], spacing=20)
+        root = BoxLayout(
+            orientation="vertical",
+            padding=[30, 40],
+            spacing=20,
+            size_hint=(1, 1),
+            pos_hint={"x": 0, "y": 0},
+        )
 
         # Header
         header = Label(
@@ -149,7 +157,5 @@ class ShipSelectScreen(Screen):
         self._update_display()
 
     def _update_bg(self, *args):
-        self.canvas.before.clear()
-        with self.canvas.before:
-            Color(0.02, 0.02, 0.08, 1)
-            Rectangle(pos=self.pos, size=self.size)
+        self._bg_rect.pos = self.pos
+        self._bg_rect.size = self.size

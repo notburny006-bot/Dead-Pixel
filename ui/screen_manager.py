@@ -1,6 +1,7 @@
 """Screen manager — handles navigation between all game screens."""
 
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import NoTransition
 
 
 class AppScreenManager(ScreenManager):
@@ -8,6 +9,7 @@ class AppScreenManager(ScreenManager):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.transition = NoTransition()
         self.selected_ship_id = "phantom_wing"
 
     def go_menu(self):
