@@ -63,7 +63,7 @@ def _show_crash_screen(text):
 
 def _patch_kivy_clock():
     from kivy.clock import Clock
-    orig_tick = Clock._tick
+    orig_tick = Clock.tick
 
     def safe_tick(*args, **kwargs):
         try:
@@ -75,9 +75,8 @@ def _patch_kivy_clock():
                 _show_crash_screen(text)
             except Exception:
                 pass
-            return False
 
-    Clock._tick = safe_tick
+    Clock.tick = safe_tick
 
 
 def main():
