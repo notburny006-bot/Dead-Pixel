@@ -18,21 +18,21 @@ ENEMIES = {
         base_hp=20,
         base_speed=120.0,
         size=40,
-        source="assets/enemy.png",
+        source="",
     ),
     "miniboss": EnemyDef(
         name="miniboss",
         base_hp=80,
         base_speed=80.0,
         size=56,
-        source="assets/enemy.png",
+        source="",
     ),
     "boss": EnemyDef(
         name="boss",
         base_hp=200,
         base_speed=50.0,
         size=72,
-        source="assets/enemy.png",
+        source="",
     ),
 }
 

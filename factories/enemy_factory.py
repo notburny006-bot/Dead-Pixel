@@ -35,7 +35,7 @@ def create_enemy(enemy_type: str, x: float, y: float, wave: int) -> int:
         Velocity(0, -speed),
         Health(current=int(hp), max_hp=int(hp)),
         Collider(defn.size, defn.size),
-        Renderable(source=defn.source, size=(defn.size, defn.size)),
+        Renderable(source=defn.source, size=(defn.size, defn.size), fallback_key="enemy"),
         enemy_comp,
         *extra,
     )

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from kivy.uix.image import Image
+from kivy.uix.widget import Widget
 
 # --- Core Components ---
 
@@ -24,7 +24,8 @@ class Renderable:
     """Marks entity for rendering. RenderSystem manages Kivy widget."""
     source: str
     size: tuple = (48, 48)  # (width, height) for widget sizing
-    widget: Optional[Image] = None
+    fallback_key: str = "player"
+    widget: Optional[Widget] = None
 
 # --- Tag Components ---
 

@@ -1,6 +1,38 @@
+from pathlib import Path
+
 import esper
 from components import Position, Renderable
+from kivy.graphics import Color, Ellipse, Rectangle
 from kivy.uix.image import Image
+from kivy.uix.widget import Widget
+
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+
+
+class FallbackSprite(Widget):
+    """Simple built-in sprite used until real enemy/bullet art is added."""
+
+    COLORS = {
+        "enemy": (1.0, 0.15, 0.15, 1),
+        "bullet": (1.0, 0.9, 0.15, 1),
+        "player": (0.0, 0.8, 1.0, 1),
+    }
+
+    def __init__(self, fallback_key: str, **kwargs):
+        super().__init__(**kwargs)
+        self.fallback_key = fallback_key
+        with self.canvas:
+            Color(*self.COLORS.get(fallback_key, self.COLORS["player"]))
+            if fallback_key == "bullet":
+                self.shape = Ellipse(pos=self.pos, size=self.size)
+            else:
+                self.shape = Rectangle(pos=self.pos, size=self.size)
+        self.bind(pos=self._update_shape, size=self._update_shape)
+
+    def _update_shape(self, *args):
+        self.shape.pos = self.pos
+        self.shape.size = self.size
 
 
 class RenderSystem(esper.Processor):
@@ -8,16 +40,21 @@ class RenderSystem(esper.Processor):
 
     def __init__(self, game_widget):
         self.game = game_widget
-        self._widget_map: dict[int, Image] = {}  # entity_id → widget
+        self._widget_map: dict[int, Widget] = {}  # entity_id → widget
+
+    def _create_widget(self, rend: Renderable) -> Widget:
+        if rend.source and (BASE_DIR / rend.source).exists():
+            return Image(
+                source=rend.source,
+                size=rend.size,
+                fit_mode="contain",
+            )
+        return FallbackSprite(rend.fallback_key, size=rend.size)
 
     def process(self, dt):
         for ent, (pos, rend) in esper.get_components(Position, Renderable):
             if rend.widget is None:
-                rend.widget = Image(
-                    source=rend.source,
-                    size=rend.size,
-                    fit_mode="contain",
-                )
+                rend.widget = self._create_widget(rend)
                 self.game.add_widget(rend.widget)
                 self._widget_map[ent] = rend.widget
             rend.widget.pos = (pos.x, pos.y)
