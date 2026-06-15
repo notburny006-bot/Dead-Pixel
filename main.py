@@ -80,65 +80,59 @@ def _patch_kivy_clock():
     Clock._tick = safe_tick
 
 
-class DeadPixelApp:
-    """Lazy wrapper — real class built after safe imports."""
-    pass
-
-
-def _build_app_class():
-    """Build real app class with all imports inside try/except."""
-    global DeadPixelApp
-
+def main():
     try:
         import esper
+        from kivy.app import App
         from ui.screen_manager import AppScreenManager
         from ui.main_menu_screen import MainMenuScreen
         from ui.ship_select_screen import ShipSelectScreen
         from ui.game_over_screen import GameOverScreen
         from game import GameScreen
-    except Exception:
+
+        _patch_kivy_clock()
+
+        class DeadPixelApp(App):
+            def build(self):
+                self.sm = AppScreenManager()
+                self.sm.add_widget(MainMenuScreen())
+                self.sm.add_widget(ShipSelectScreen())
+                self.sm.add_widget(GameScreen())
+                self.sm.add_widget(GameOverScreen())
+                self.sm.current = "main_menu"
+                return self.sm
+
+            def on_pause(self):
+                game = self._get_game()
+                if game:
+                    game.pause()
+                return True
+
+            def on_resume(self):
+                game = self._get_game()
+                if game:
+                    game.resume()
+
+            def on_stop(self):
+                game = self._get_game()
+                if game and hasattr(game, "render_system"):
+                    game.render_system.clear_all()
+                esper.clear_database()
+
+            def _get_game(self):
+                screen = self.sm.get_screen("game") if self.sm.has_screen("game") else None
+                return screen.game_widget if screen else None
+
+        DeadPixelApp().run()
+
+    except BaseException:
         text = traceback.format_exc()
         _write_crash(text)
-        _show_crash_screen(text)
-        return
-
-    from kivy.app import App
-
-    class _DeadPixelApp(App):
-        def build(self):
-            _patch_kivy_clock()
-            self.sm = AppScreenManager()
-            self.sm.add_widget(MainMenuScreen())
-            self.sm.add_widget(ShipSelectScreen())
-            self.sm.add_widget(GameScreen())
-            self.sm.add_widget(GameOverScreen())
-            self.sm.current = "main_menu"
-            return self.sm
-
-        def on_pause(self):
-            game = self._get_game()
-            if game:
-                game.pause()
-            return True
-
-        def on_resume(self):
-            game = self._get_game()
-            if game:
-                game.resume()
-
-        def on_stop(self):
-            game = self._get_game()
-            if game and hasattr(game, "render_system"):
-                game.render_system.clear_all()
-            esper.clear_database()
-
-        def _get_game(self):
-            screen = self.sm.get_screen("game") if self.sm.has_screen("game") else None
-            return screen.game_widget if screen else None
-
-    DeadPixelApp = _DeadPixelApp
+        try:
+            _show_crash_screen(text)
+        except BaseException:
+            pass
 
 
 if __name__ == "__main__":
-    _build_app_class()
-    DeadPixelApp().run()
+    main()
