@@ -13,6 +13,7 @@ class ShipDef:
     weapon_damage: int
     fire_rate: float
     size: int
+    render_size: int
 
 
 SHIPS = {
@@ -25,6 +26,7 @@ SHIPS = {
         weapon_damage=10,
         fire_rate=0.3,
         size=48,
+        render_size=76,
     ),
     "viper_scout": ShipDef(
         name="viper_scout",
@@ -35,6 +37,7 @@ SHIPS = {
         weapon_damage=8,
         fire_rate=0.2,
         size=40,
+        render_size=68,
     ),
     "serpent_class": ShipDef(
         name="serpent_class",
@@ -45,5 +48,6 @@ SHIPS = {
         weapon_damage=20,
         fire_rate=0.5,
         size=56,
+        render_size=84,
     ),
 }

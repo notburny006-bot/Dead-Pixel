@@ -66,7 +66,7 @@ class RenderSystem(esper.Processor):
                 rend.widget = self._create_widget(rend)
                 self.game.add_widget(rend.widget)
                 self._widget_map[ent] = rend.widget
-            rend.widget.pos = (pos.x, pos.y)
+            rend.widget.pos = (pos.x + rend.offset[0], pos.y + rend.offset[1])
 
     def remove_widget(self, entity: int) -> None:
         """Remove Kivy widget for a deleted entity."""

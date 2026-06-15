@@ -24,6 +24,7 @@ class Renderable:
     """Marks entity for rendering. RenderSystem manages Kivy widget."""
     source: str
     size: tuple = (48, 48)  # (width, height) for widget sizing
+    offset: tuple = (0, 0)
     fallback_key: str = "player"
     widget: Optional[Widget] = None
 

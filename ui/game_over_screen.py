@@ -13,7 +13,7 @@ class GameOverScreen(Screen):
         self._score = 0
         self._wave = 0
         with self.canvas.before:
-            Color(0.02, 0.02, 0.08, 1)
+            Color(0, 0, 0, 1)
             self._bg_rect = Rectangle(pos=self.pos, size=self.size)
         self._build_ui()
         self.bind(size=self._update_bg, pos=self._update_bg)

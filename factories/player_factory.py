@@ -9,6 +9,7 @@ from constants import PLAYER_START_Y_RATIO
 def create_player(screen_width: float, screen_height: float, ship_id: str = "phantom_wing") -> int:
     """Create player entity at center-bottom of screen using ship stats."""
     ship = SHIPS[ship_id]
+    render_offset = (ship.render_size - ship.size) / 2
     return esper.create_entity(
         Position(screen_width / 2 - ship.size / 2, screen_height * PLAYER_START_Y_RATIO),
         Velocity(0, 0),
@@ -17,6 +18,10 @@ def create_player(screen_width: float, screen_height: float, ship_id: str = "pha
         Weapon(damage=ship.weapon_damage, fire_rate=ship.fire_rate),
         Health(current=ship.hp, max_hp=ship.hp),
         Collider(ship.size, ship.size),
-        Renderable(source=ship.source, size=(ship.size, ship.size)),
+        Renderable(
+            source=ship.source,
+            size=(ship.render_size, ship.render_size),
+            offset=(-render_offset, -render_offset),
+        ),
         Player(),
     )

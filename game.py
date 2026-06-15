@@ -29,7 +29,7 @@ class GameWidget(Widget):
         super().__init__(**kwargs)
         self.ship_id = ship_id
         with self.canvas.before:
-            Color(0.02, 0.02, 0.08, 1)
+            Color(0, 0, 0, 1)
             self._bg_rect = Rectangle(pos=self.pos, size=self.size)
         self.bind(pos=self._update_bg, size=self._update_bg)
         self._world_name = self._make_world_name()

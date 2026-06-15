@@ -19,7 +19,7 @@ ZONES = [
     ZoneDef(
         "Neon Ruins",
         "Abandoned satellite graveyard",
-        (0.02, 0.02, 0.08, 1.0),
+        (0, 0, 0, 1.0),
         hp_mult=1.0,
         speed_mult=1.0,
         spawn_mult=1.0,
