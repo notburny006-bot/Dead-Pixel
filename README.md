@@ -38,7 +38,7 @@ Frame loop:
 
 ```bash
 # Desktop (requires Kivy + esper)
-pip install kivy esper pillow
+pip install kivy esper
 python3 main.py
 
 # Android APK (via CI or local buildozer)
