@@ -44,12 +44,21 @@ class RenderSystem(esper.Processor):
 
     def _create_widget(self, rend: Renderable) -> Widget:
         if rend.source and (BASE_DIR / rend.source).exists():
-            return Image(
+            image = Image(
                 source=rend.source,
                 size=rend.size,
                 fit_mode="contain",
             )
+            image.bind(texture=self._sharpen_texture)
+            if image.texture:
+                self._sharpen_texture(image, image.texture)
+            return image
         return FallbackSprite(rend.fallback_key, size=rend.size)
+
+    @staticmethod
+    def _sharpen_texture(instance, texture):
+        texture.mag_filter = "nearest"
+        texture.min_filter = "nearest"
 
     def process(self, dt):
         for ent, (pos, rend) in esper.get_components(Position, Renderable):

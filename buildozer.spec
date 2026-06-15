@@ -5,7 +5,7 @@ package.domain = com.deadpixel.game
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 source.exclude_dirs = __pycache__,.git,.pytest_cache,.mypy_cache
-source.exclude_patterns = */__pycache__/*,*.pyc,assets/player.png,assets/ships/*,assets/ships_ascii/phantom_wing.png,assets/ships_ascii/serpent_class.png,assets/ships_ascii/viper_scout.png,assets/ships_ascii/*.txt,assets/ships_ascii/serpent_tunes/*,assets/ships_ascii/work/*
+source.exclude_patterns = */__pycache__/*,*.pyc,assets/player.png,assets/ships_ascii/*
 version = 0.6
 
 requirements = python3,kivy==2.3.1,esper==3.7

@@ -19,7 +19,7 @@ SHIPS = {
     "phantom_wing": ShipDef(
         name="phantom_wing",
         display_name="PHANTOM WING",
-        source="assets/ships_ascii/final/phantom_wing.png",
+        source="assets/ships/phantom_wing.png",
         hp=100,
         speed=300.0,
         weapon_damage=10,
@@ -29,7 +29,7 @@ SHIPS = {
     "viper_scout": ShipDef(
         name="viper_scout",
         display_name="VIPER SCOUT",
-        source="assets/ships_ascii/final/viper_scout.png",
+        source="assets/ships/viper_scout.png",
         hp=60,
         speed=450.0,
         weapon_damage=8,
@@ -39,7 +39,7 @@ SHIPS = {
     "serpent_class": ShipDef(
         name="serpent_class",
         display_name="SERPENT CLASS",
-        source="assets/ships_ascii/final/serpent_class.png",
+        source="assets/ships/serpent_class.png",
         hp=200,
         speed=180.0,
         weapon_damage=20,

@@ -57,6 +57,7 @@ class ShipSelectScreen(Screen):
             fit_mode="contain",
             size_hint_x=0.7,
         )
+        self.ship_image.bind(texture=self._sharpen_texture)
 
         right_btn = Button(
             text=">",
@@ -136,6 +137,13 @@ class ShipSelectScreen(Screen):
         self.ship_image.source = ship.source
         self.ship_name.text = ship.display_name
         self._build_stats()
+        if self.ship_image.texture:
+            self._sharpen_texture(self.ship_image, self.ship_image.texture)
+
+    @staticmethod
+    def _sharpen_texture(instance, texture):
+        texture.mag_filter = "nearest"
+        texture.min_filter = "nearest"
 
     def _prev_ship(self, instance):
         self._ship_index = (self._ship_index - 1) % len(SHIP_ORDER)
