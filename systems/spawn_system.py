@@ -37,7 +37,7 @@ class SpawnSystem(esper.Processor):
 
     def _check_wave_clear(self):
         """Start next wave when all enemies from current wave are dead."""
-        enemy_count = len(list(esper.get_components(Position, Enemy)))
+        enemy_count = sum(1 for _ in esper.get_components(Position, Enemy))
         if enemy_count == 0:
             self.wave += 1
             self.spawn_timer = 2.0

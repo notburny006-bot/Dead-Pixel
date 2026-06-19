@@ -1,5 +1,3 @@
-from itertools import count
-
 import esper
 from kivy.app import App
 from kivy.graphics import Color, Rectangle
@@ -19,9 +17,6 @@ from factories.player_factory import create_player
 from data.ships import SHIPS
 
 
-_WORLD_COUNTER = count(1)
-
-
 class GameWidget(Widget):
     """Game rendering + ECS logic. Embedded inside GameScreen."""
 
@@ -32,26 +27,10 @@ class GameWidget(Widget):
             Color(0, 0, 0, 1)
             self._bg_rect = Rectangle(pos=self.pos, size=self.size)
         self.bind(pos=self._update_bg, size=self._update_bg)
-        self._world_name = self._make_world_name()
-        self._activate_world()
         self._setup_systems()
         self.player_entity = None
         self.game_loop = Clock.schedule_interval(self.update, 1 / 60)
         self._paused = False
-
-    def _make_world_name(self):
-        return f"game_{id(self)}_{next(_WORLD_COUNTER)}"
-
-    def _activate_world(self):
-        esper.switch_world(self._world_name)
-
-    def _delete_world(self, world_name):
-        try:
-            if esper.current_world == world_name:
-                esper.switch_world("default")
-            esper.delete_world(world_name)
-        except KeyError:
-            pass
 
     def _update_bg(self, *args):
         self._bg_rect.pos = self.pos
@@ -60,20 +39,16 @@ class GameWidget(Widget):
     def _reset(self):
         """Reset ECS for a new run without re-creating GameWidget."""
         self.pause()
-        self._activate_world()
         if hasattr(self, "render_system"):
             self.render_system.clear_all()
-        old_world = self._world_name
-        self._world_name = self._make_world_name()
-        self._delete_world(old_world)
-        self._activate_world()
+        for proc in list(esper.processors):
+            esper.remove_processor(proc)
         self._setup_systems()
         self.player_entity = None
         self.game_loop = Clock.schedule_interval(self.update, 1 / 60)
         self._paused = False
 
     def _setup_systems(self):
-        self._activate_world()
         self.input_system = InputSystem(self)
         self.render_system = RenderSystem(self)
         self.hud_system = HudSystem(self)
@@ -88,7 +63,6 @@ class GameWidget(Widget):
         esper.set_handler("player_died", self._on_player_died)
 
     def _create_player(self):
-        self._activate_world()
         self.player_entity = create_player(self.width, self.height, ship_id=self.ship_id)
 
     def _on_player_died(self):
@@ -113,7 +87,6 @@ class GameWidget(Widget):
         if self._paused:
             return
 
-        self._activate_world()
         if self.player_entity is None and self.width > 0 and self.height > 0:
             self._create_player()
         esper.process(dt)
@@ -131,10 +104,10 @@ class GameWidget(Widget):
 
     def destroy(self):
         self.pause()
-        self._activate_world()
         if hasattr(self, "render_system"):
             self.render_system.clear_all()
-        self._delete_world(self._world_name)
+        for proc in list(esper.processors):
+            esper.remove_processor(proc)
 
 
 class GameScreen(Screen):

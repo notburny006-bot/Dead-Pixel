@@ -1,3 +1,5 @@
+import math
+
 import esper
 from components import Position, Velocity, Speed, Player, Collider
 
@@ -32,7 +34,7 @@ class InputSystem(esper.Processor):
             center_y = pos.y + size / 2
             dx = self.touch_pos[0] - center_x
             dy = self.touch_pos[1] - center_y
-            dist = (dx * dx + dy * dy) ** 0.5
+            dist = math.hypot(dx, dy)
 
             if dist < 5:
                 vel.dx = 0

@@ -5,3 +5,4 @@ bin/
 buildozer.log
 *.zip
 .omc/
+crash.log

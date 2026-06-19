@@ -1,3 +1,4 @@
+import logging
 import sys
 import traceback
 from pathlib import Path
@@ -6,41 +7,39 @@ BASE_DIR = str(Path(__file__).resolve().parent)
 sys.path.insert(0, BASE_DIR)
 
 
-def _get_crash_log_paths():
-    paths = []
+def _crash_log_path():
     try:
         from android.storage import app_storage_path
-        paths.append(Path(app_storage_path()) / "crash.log")
+        return Path(app_storage_path()) / "crash.log"
     except Exception:
         pass
-    for raw in (
-        "/sdcard/deadpixel_crash.log",
-        "/storage/emulated/0/deadpixel_crash.log",
-        str(Path(BASE_DIR) / "crash.log"),
-    ):
-        paths.append(Path(raw))
-    return paths
+    return Path(BASE_DIR) / "crash.log"
+
+
+def _setup_logger():
+    logger = logging.getLogger("deadpixel")
+    logger.setLevel(logging.DEBUG)
+    path = _crash_log_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        handler = logging.FileHandler(path, mode="a", encoding="utf-8")
+        handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+        logger.addHandler(handler)
+    except Exception:
+        pass
+    return logger
+
+
+_log = _setup_logger()
 
 
 def _write_crash(text):
     print(text, file=sys.stderr)
-    for path in _get_crash_log_paths():
-        try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            with open(path, "w") as f:
-                f.write(text)
-        except Exception:
-            pass
+    _log.error("CRASH\n%s", text)
 
 
-def _append_crash_log(text):
-    for path in _get_crash_log_paths():
-        try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            with open(path, "a") as f:
-                f.write(text + "\n")
-        except Exception:
-            pass
+def _trace(msg):
+    _log.debug(msg)
 
 
 def _show_crash_screen(text):
@@ -85,37 +84,37 @@ def _install_kivy_exception_handler():
 
         ExceptionManager.add_handler(DeadPixelExceptionHandler())
     except Exception:
-        _append_crash_log("Failed to install Kivy exception handler:")
-        _append_crash_log(traceback.format_exc())
+        _trace("Failed to install Kivy exception handler:")
+        _trace(traceback.format_exc())
 
 
 def main():
     try:
-        _append_crash_log("startup: begin")
+        _trace("startup: begin")
         import esper
-        _append_crash_log("startup: imported esper")
+        _trace("startup: imported esper")
         from kivy.app import App
-        _append_crash_log("startup: imported kivy App")
+        _trace("startup: imported kivy App")
         from ui.screen_manager import AppScreenManager
         from ui.main_menu_screen import MainMenuScreen
         from ui.ship_select_screen import ShipSelectScreen
         from ui.game_over_screen import GameOverScreen
         from game import GameScreen
-        _append_crash_log("startup: imported screens")
+        _trace("startup: imported screens")
 
         _install_kivy_exception_handler()
-        _append_crash_log("startup: installed exception handler")
+        _trace("startup: installed exception handler")
 
         class DeadPixelApp(App):
             def build(self):
-                _append_crash_log("startup: build begin")
+                _trace("startup: build begin")
                 self.sm = AppScreenManager()
                 self.sm.add_widget(MainMenuScreen())
                 self.sm.add_widget(ShipSelectScreen())
                 self.sm.add_widget(GameScreen())
                 self.sm.add_widget(GameOverScreen())
                 self.sm.current = "main_menu"
-                _append_crash_log("startup: build complete")
+                _trace("startup: build complete")
                 return self.sm
 
             def on_pause(self):
@@ -138,9 +137,9 @@ def main():
                 screen = self.sm.get_screen("game") if self.sm.has_screen("game") else None
                 return screen.game_widget if screen else None
 
-        _append_crash_log("startup: run app")
+        _trace("startup: run app")
         DeadPixelApp().run()
-        _append_crash_log("startup: app stopped normally")
+        _trace("startup: app stopped normally")
 
     except BaseException:
         text = traceback.format_exc()

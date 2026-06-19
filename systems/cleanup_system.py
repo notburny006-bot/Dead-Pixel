@@ -43,8 +43,13 @@ class CleanupSystem(esper.Processor):
 
     def _damage_player(self, damage: int):
         """Deal damage to the player entity."""
-        for ent, (health, _) in esper.get_components(Health, Player):
-            health.current -= damage
-            if health.current <= 0:
-                health.current = 0
-                esper.dispatch_event("player_died")
+        player = self.game.player_entity
+        if player is None:
+            return
+        health = esper.try_component(player, Health)
+        if health is None:
+            return
+        health.current -= damage
+        if health.current <= 0:
+            health.current = 0
+            esper.dispatch_event("player_died")
