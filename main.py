@@ -16,30 +16,22 @@ def _crash_log_path():
     return Path(BASE_DIR) / "crash.log"
 
 
-def _setup_logger():
-    logger = logging.getLogger("deadpixel")
-    logger.setLevel(logging.DEBUG)
-    path = _crash_log_path()
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        handler = logging.FileHandler(path, mode="a", encoding="utf-8")
-        handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
-        logger.addHandler(handler)
-    except Exception:
-        pass
-    return logger
+try:
+    _path = _crash_log_path()
+    _path.parent.mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(
+        filename=str(_path), level=logging.DEBUG,
+        format="%(asctime)s %(message)s", filemode="a",
+    )
+except Exception:
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(message)s")
 
-
-_log = _setup_logger()
+_log = logging.getLogger("deadpixel")
 
 
 def _write_crash(text):
     print(text, file=sys.stderr)
     _log.error("CRASH\n%s", text)
-
-
-def _trace(msg):
-    _log.debug(msg)
 
 
 def _show_crash_screen(text):
@@ -84,37 +76,37 @@ def _install_kivy_exception_handler():
 
         ExceptionManager.add_handler(DeadPixelExceptionHandler())
     except Exception:
-        _trace("Failed to install Kivy exception handler:")
-        _trace(traceback.format_exc())
+        _log.debug("Failed to install Kivy exception handler:")
+        _log.debug(traceback.format_exc())
 
 
 def main():
     try:
-        _trace("startup: begin")
+        _log.debug("startup: begin")
         import esper
-        _trace("startup: imported esper")
+        _log.debug("startup: imported esper")
         from kivy.app import App
-        _trace("startup: imported kivy App")
+        _log.debug("startup: imported kivy App")
         from ui.screen_manager import AppScreenManager
         from ui.main_menu_screen import MainMenuScreen
         from ui.ship_select_screen import ShipSelectScreen
         from ui.game_over_screen import GameOverScreen
         from game import GameScreen
-        _trace("startup: imported screens")
+        _log.debug("startup: imported screens")
 
         _install_kivy_exception_handler()
-        _trace("startup: installed exception handler")
+        _log.debug("startup: installed exception handler")
 
         class DeadPixelApp(App):
             def build(self):
-                _trace("startup: build begin")
+                _log.debug("startup: build begin")
                 self.sm = AppScreenManager()
                 self.sm.add_widget(MainMenuScreen())
                 self.sm.add_widget(ShipSelectScreen())
                 self.sm.add_widget(GameScreen())
                 self.sm.add_widget(GameOverScreen())
                 self.sm.current = "main_menu"
-                _trace("startup: build complete")
+                _log.debug("startup: build complete")
                 return self.sm
 
             def on_pause(self):
@@ -137,9 +129,9 @@ def main():
                 screen = self.sm.get_screen("game") if self.sm.has_screen("game") else None
                 return screen.game_widget if screen else None
 
-        _trace("startup: run app")
+        _log.debug("startup: run app")
         DeadPixelApp().run()
-        _trace("startup: app stopped normally")
+        _log.debug("startup: app stopped normally")
 
     except BaseException:
         text = traceback.format_exc()

@@ -36,13 +36,16 @@ class GameWidget(Widget):
         self._bg_rect.pos = self.pos
         self._bg_rect.size = self.size
 
+    def _clear_processors(self):
+        for proc in list(esper.processors):
+            esper.remove_processor(proc)
+
     def _reset(self):
         """Reset ECS for a new run without re-creating GameWidget."""
         self.pause()
         if hasattr(self, "render_system"):
             self.render_system.clear_all()
-        for proc in list(esper.processors):
-            esper.remove_processor(proc)
+        self._clear_processors()
         self._setup_systems()
         self.player_entity = None
         self.game_loop = Clock.schedule_interval(self.update, 1 / 60)
@@ -106,8 +109,7 @@ class GameWidget(Widget):
         self.pause()
         if hasattr(self, "render_system"):
             self.render_system.clear_all()
-        for proc in list(esper.processors):
-            esper.remove_processor(proc)
+        self._clear_processors()
 
 
 class GameScreen(Screen):
